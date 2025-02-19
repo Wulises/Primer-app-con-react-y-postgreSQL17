@@ -1,0 +1,51 @@
+/* Pasos para conectarse a la base de datos de PostgreSQL con React /*
+1.- Por lo general hay que crear una carpeta llamada backEnd para justamente manejar todo el backEnd ahí
+2.- Vamos a crear un proyecto de node con la ayuda del comando npm init -y
+3.- Instalamos las dependencias necesarias con el siguiente comando npm install express pg cors dotenv
+4.- Creamos un archivo en la raíz del proyecto para indicar la conexión llamado server.js y pegamos lo siguiente 
+------------------------------------- server.js ----------------------------------------------------------
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const { Pool } = require("pg");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+});
+
+// Probar conexión a la BD
+pool.connect()
+  .then(() => console.log("Conectado a PostgreSQL 🚀"))
+  .catch(err => console.error("Error de conexión a PostgreSQL", err));
+
+// Ruta para obtener todas las waifus
+app.get("/waifus", async (req, res) => {
+  try {
+    const resultado = await pool.query("SELECT * FROM waifus");
+    res.json(resultado.rows);
+  } catch (error) {
+    console.error("Error obteniendo waifus", error);
+    res.status(500).json({ error: "Error en el servidor" });
+  }
+});
+
+app.listen(5000, () => {
+  console.log("Servidor corriendo en el puerto 5000");
+});
+------------------------------------------------------------------------------------------------------------
+5.- Creamos un archivo .env para la configuración del PostgreSQL con el siguiente código 
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=haru
+DB_PASSWORD=haruxmakoto
+DB_PORT=5432
+6.- Finalmente si todo salió bien hay que correr el archivo con el siguiente comando node server.js 
+7.- Debería salir en la terminal el mensaje de éxito y en la siguiente ruta el array de los datos http://localhost:5000/waifus
